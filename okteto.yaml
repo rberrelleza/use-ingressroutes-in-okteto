@@ -1,0 +1,28 @@
+build:
+  hello-world:
+    context: .
+
+deploy:
+  commands:
+    - name: Deploy application
+      command: |
+        export HOST="hello-$OKTETO_NAMESPACE.traefik.$OKTETO_DOMAIN"
+        helm upgrade --install hello-world chart --set ingress.host=$HOST --set image=$OKTETO_BUILD_HELLO_WORLD_IMAGE
+        echo "OKTETO_EXTERNAL_HELLO_WORLD_ENDPOINTS_WEB_URL=http://$HOST" >> $OKTETO_ENV
+
+# Currently, Okteto won't pickup ingressroutes-based endpoints automatically, but we can leverage external resources for this https://www.okteto.com/docs/reference/okteto-manifest/#external-object-optional
+external:
+  hello-world:
+    icon:
+    endpoints:
+    - name: web
+
+dev:
+  hello-world:
+    image: okteto/golang:1
+    command: bash
+    sync:
+      - .:/usr/src/app
+    volumes:
+      - /go
+      - /root/.cache
